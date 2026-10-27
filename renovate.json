@@ -1,26 +1,79 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "description": "MM3 dependency policy: core spec section 10.9.",
-  "extends": ["config:recommended", ":semanticCommitsDisabled"],
+  "extends": [
+    "config:recommended",
+    ":semanticCommitsDisabled"
+  ],
   "timezone": "Europe/Rome",
-  "schedule": ["before 6am on monday"],
-  "labels": ["dependencies"],
-  "vulnerabilityAlerts": { "enabled": true, "labels": ["security"], "schedule": ["at any time"] },
+  "schedule": [
+    "before 6am on monday"
+  ],
+  "labels": [
+    "dependencies"
+  ],
+  "vulnerabilityAlerts": {
+    "enabled": true,
+    "labels": [
+      "security"
+    ],
+    "schedule": [
+      "at any time"
+    ]
+  },
   "osvVulnerabilityAlerts": true,
   "packageRules": [
     {
       "description": "Patch and minor updates: one weekly PR, merged automatically when CI is green.",
-      "matchManagers": ["pip_requirements", "github-actions"],
-      "matchUpdateTypes": ["minor", "patch", "digest", "pin"],
+      "matchManagers": [
+        "pip_requirements",
+        "github-actions"
+      ],
+      "matchUpdateTypes": [
+        "minor",
+        "patch",
+        "digest",
+        "pin"
+      ],
       "groupName": "weekly non-major updates",
       "automerge": true,
       "automergeType": "pr"
     },
     {
       "description": "Major updates: manual review.",
-      "matchUpdateTypes": ["major"],
+      "matchUpdateTypes": [
+        "major"
+      ],
       "automerge": false,
-      "labels": ["dependencies", "major"]
+      "labels": [
+        "dependencies",
+        "major"
+      ]
+    },
+    {
+      "description": "CI tooling majors (GitHub Actions): merged manually after CI.",
+      "matchManagers": [
+        "github-actions"
+      ],
+      "matchUpdateTypes": [
+        "major"
+      ],
+      "automerge": false,
+      "labels": [
+        "dependencies",
+        "major",
+        "ci-tooling"
+      ]
+    },
+    {
+      "description": "Python versions in workflows are chosen deliberately (supported minimum); never bumped by Renovate.",
+      "matchManagers": [
+        "github-actions"
+      ],
+      "matchDepNames": [
+        "python"
+      ],
+      "enabled": false
     }
   ]
 }
