@@ -1,0 +1,105 @@
+{
+  "$defs": {
+    "Maintainer": {
+      "additionalProperties": false,
+      "description": "Person or team responsible for the module.",
+      "properties": {
+        "name": {
+          "minLength": 1,
+          "title": "Name",
+          "type": "string"
+        },
+        "email": {
+          "format": "email",
+          "title": "Email",
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "email"
+      ],
+      "title": "Maintainer",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "description": "One module listed in the MM3 catalog.",
+  "properties": {
+    "pypi": {
+      "description": "PyPI distribution name",
+      "pattern": "^mm3-[a-z0-9][a-z0-9-]*$",
+      "title": "Pypi",
+      "type": "string"
+    },
+    "source": {
+      "description": "Public source repository (MOD-97)",
+      "format": "uri",
+      "maxLength": 2083,
+      "minLength": 1,
+      "title": "Source",
+      "type": "string"
+    },
+    "maintainer": {
+      "$ref": "#/$defs/Maintainer"
+    },
+    "license": {
+      "description": "SPDX identifier of an OSI-approved license",
+      "title": "License",
+      "type": "string"
+    },
+    "category": {
+      "enum": [
+        "time",
+        "weather",
+        "calendar",
+        "news",
+        "home-automation",
+        "media",
+        "transport",
+        "health",
+        "utilities",
+        "widgets",
+        "system",
+        "other"
+      ],
+      "title": "Category",
+      "type": "string"
+    },
+    "description": {
+      "additionalProperties": {
+        "type": "string"
+      },
+      "title": "Description",
+      "type": "object"
+    },
+    "screenshots": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Screenshots",
+      "type": "array"
+    },
+    "badge": {
+      "default": "community",
+      "description": "Set by catalog maintainers only (CORE-122)",
+      "enum": [
+        "official",
+        "verified",
+        "community"
+      ],
+      "title": "Badge",
+      "type": "string"
+    }
+  },
+  "required": [
+    "pypi",
+    "source",
+    "maintainer",
+    "license",
+    "category",
+    "description"
+  ],
+  "title": "ModuleEntry",
+  "type": "object"
+}

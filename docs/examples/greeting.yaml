@@ -1,0 +1,13 @@
+# Example entry (Module Contract 12.3). Real entries go in modules/<name>.yaml.
+pypi: mm3-greeting
+source: https://github.com/example/mm3-greeting
+maintainer: { name: Example Dev, email: dev@example.org }
+license: MIT
+category: utilities
+description:
+  en: Shows a time-of-day greeting.
+  it: Mostra un saluto in base all'ora del giorno.
+  fr: Affiche une salutation selon l'heure.
+  es: Muestra un saludo según la hora del día.
+  de: Zeigt eine tageszeitabhängige Begrüßung.
+screenshots: [docs/screenshot.png]

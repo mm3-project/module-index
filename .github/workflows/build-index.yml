@@ -1,0 +1,35 @@
+# Builds and publishes the signed index.json (core spec 10.6, CORE-121..126).
+#
+# NOT ACTIVE YET: it needs `mm3 module check` and attestation verification
+# from mm3-core, which do not exist yet. Until then it only runs manually and
+# stops at the placeholder step, so no unverified release can be published.
+name: Build index
+
+on:
+  workflow_dispatch:
+  # Enable once mm3 module check exists:
+  # schedule:
+  #   - cron: "17 3 * * *"
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install -r requirements.txt
+      - run: python scripts/validate_entries.py
+      - name: Not implemented yet
+        run: |
+          echo "Steps to implement for each entry and each new PyPI release:"
+          echo " 1. download wheel, verify SHA-256 and PEP 740 attestation"
+          echo "    (publisher identity must match the entry's source repository)"
+          echo " 2. install with mm3-core and run: mm3 module check --format json"
+          echo " 3. keep only passing releases; record api range, sha256, report"
+          echo " 4. write index.json, sign it with Sigstore, publish to GitHub Pages"
+          exit 1
