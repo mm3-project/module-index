@@ -38,7 +38,7 @@ reason is in the job summary:
 | --- | --- |
 | The GitHub repository is public, its license is OSI-approved and equals the entry's, and the README has "Grants" and "Notifications" sections | MOD-97 |
 | Every wheel has the SHA-256 PyPI reports and a PEP 740 attestation, so it was uploaded with Trusted Publishing; releases uploaded with API tokens have none | MOD-96 |
-| The attestation names the entry's source repository and its Sigstore signature verifies for that publisher; all listed releases of a module share one publisher workflow | CORE-123, CORE-352 |
+| The attestation names the entry's source repository and its Sigstore signature verifies for that publisher; the workflow may differ between releases of the same repository (the index names the newest release's) | CORE-123, CORE-352 |
 | `mm3 module check --wheel` (static checks) finds the wheel compliant for its declared `api_version`; the release is listed for `>=M.m,<M+1` | MOD-99, CORE-121 |
 
 The result is `index.json` with a report per release under `reports/`, signed
