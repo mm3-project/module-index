@@ -16,7 +16,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-      - run: pip install -r requirements.txt
+      - uses: ./.github/actions/install-mm3-core # also runs the tests that need mm3-core
       - name: Schema is up to date
         run: |
           python scripts/entry_model.py
@@ -24,6 +24,32 @@ jobs:
       - name: Validate modules/*.yaml (MOD-97, MOD-98)
         run: python scripts/validate_entries.py
       - run: pytest -q tests
+
+  dry-run:
+    # Checks the entries a pull request touches the way publish.yml will:
+    # public repository, attestations, signature, `mm3 module check` (MOD-96..99).
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - id: changed
+        run: |
+          files=$(git diff --name-only --diff-filter=AM "origin/${{ github.base_ref }}...HEAD" -- 'modules/*.yaml' | tr '\n' ' ')
+          echo "files=$files" >> "$GITHUB_OUTPUT"
+      - if: steps.changed.outputs.files != ''
+        uses: ./.github/actions/install-mm3-core
+      - if: steps.changed.outputs.files != ''
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          FILES: ${{ steps.changed.outputs.files }} # through the environment, never into the script text
+        run: |
+          # shellcheck disable=SC2086 - the names are split on purpose
+          python scripts/publish_index.py --out dist --strict $FILES | tee -a "$GITHUB_STEP_SUMMARY"
 
   audit:
     runs-on: ubuntu-latest

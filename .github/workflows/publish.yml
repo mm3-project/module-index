@@ -1,0 +1,81 @@
+# Builds, signs and publishes index.json (core spec 10.6, CORE-121..126, CORE-350).
+#
+# The signature identity that mm3-core trusts is this file on refs/heads/main
+# (CORE-350): do not rename it and do not run it from another branch. The job
+# therefore runs only on main. A failed build (PyPI or GitHub unreachable)
+# publishes nothing; the previous index stays live until it expires.
+name: Publish index
+
+on:
+  schedule:
+    - cron: "17 3 * * *"
+  push:
+    branches: [main]
+    paths:
+      - modules/**
+      - scripts/**
+      - requirements*.txt
+      - .github/workflows/publish.yml
+      - .github/actions/**
+  workflow_dispatch:
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write # Sigstore signs with the OIDC token of this run
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - uses: ./.github/actions/install-mm3-core
+      - name: Validate entries (MOD-97, MOD-98)
+        run: python scripts/validate_entries.py
+      - name: Fetch the published index (for the serial)
+        run: curl -fsSL -o previous.json https://mm3-project.github.io/module-index/index.json || rm -f previous.json
+      - name: Check every release and build the index (CORE-121)
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          python scripts/publish_index.py --out dist ${{ hashFiles('previous.json') != '' && '--previous previous.json' || '' }}
+          cat dist/decisions.md >> "$GITHUB_STEP_SUMMARY"
+          rm dist/decisions.md
+      - name: Sign the index
+        run: python -m sigstore sign --bundle dist/index.json.sigstore.json dist/index.json
+      - name: Verify the signature as mm3 will (CORE-350)
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          from mm3.installer.verify import SigstoreVerification
+          SigstoreVerification().verify_index(
+              Path("dist/index.json").read_bytes(),
+              Path("dist/index.json.sigstore.json").read_bytes(),
+          )
+          print("index signature verifies for the fixed identity")
+          PY
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
