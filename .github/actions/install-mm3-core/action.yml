@@ -1,0 +1,23 @@
+# Installs mm3-core with the installer extra for the index builder: the
+# signature and attestation checks of mm3.installer.verify (CORE-349) and the
+# wheel check of `mm3 module check --wheel` (CORE-371).
+#
+# mm3-core and mm3-build are not on PyPI before release 1.0, so both come from
+# one pinned commit of mm3-core; mm3-build lives in that repository (CORE-280)
+# and is installed first because the build of mm3-core requires it.
+# After release 1.0 replace this with `pip install "mm3-core[installer]>=1.0,<2"`
+# in requirements-build.txt and delete this action.
+name: Install mm3-core
+description: mm3-core[installer] from a pinned commit
+inputs:
+  ref:
+    description: Commit of mm3-project/mm3-core
+    default: 85169433a8e75990eff60d05f494ea65e57e3d78
+runs:
+  using: composite
+  steps:
+    - shell: bash
+      run: |
+        pip install -r requirements.txt hatchling babel
+        pip install "mm3-build @ git+https://github.com/mm3-project/mm3-core@${{ inputs.ref }}#subdirectory=mm3-build"
+        pip install --no-build-isolation "mm3-core[installer] @ git+https://github.com/mm3-project/mm3-core@${{ inputs.ref }}"
