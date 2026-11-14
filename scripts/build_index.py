@@ -227,7 +227,6 @@ def _entry_problems(entry: ModuleEntry, info: RepoInfo | None) -> list[str]:
 def _release(
     entry: ModuleEntry,
     up: Upload,
-    pinned: PublisherOut | None,
     source: Source,
     verifier: Verifier,
     checker: Checker,
@@ -260,10 +259,6 @@ def _release(
             )
         if publisher is not None and claim != publisher:
             raise Rejected("the wheels of this release come from different publishers")
-        if pinned is not None and claim != pinned:
-            raise Rejected(
-                f"published by {claim.workflow}, but newer releases use {pinned.workflow}"
-            )
         publisher = claim
         verifier.verify_wheel(dest, provenance, claim)
         result = checker.check(dest)
@@ -334,27 +329,27 @@ def build(
             result.decisions.append(Decision(entry.pypi, None, False, "; ".join(problems)))
             continue
         releases: list[ReleaseOut] = []
-        pinned: PublisherOut | None = None
+        newest: PublisherOut | None = None  # publisher of the newest listed release
         for up in sorted(source.uploads(entry.pypi), key=lambda u: _key(u.version), reverse=True):
             try:
                 release, publisher, report = _release(
-                    entry, up, pinned, source, verifier, checker, workdir, base_url
+                    entry, up, source, verifier, checker, workdir, base_url
                 )
             except Rejected as exc:
                 result.decisions.append(Decision(entry.pypi, up.version, False, str(exc)))
                 continue
-            pinned = pinned or publisher
+            newest = newest or publisher
             releases.append(release)
             result.reports[f"{canonicalize_name(entry.pypi)}/{up.version}"] = report
             result.decisions.append(Decision(entry.pypi, up.version, True))
-        if not releases or pinned is None:
+        if not releases or newest is None:
             continue  # nothing installable: the module is not shown
         result.index.modules.append(
             ModuleOut(
                 pypi=entry.pypi,
                 repository=str(entry.source).rstrip("/"),
                 badge=entry.badge,  # set by maintainers only (CORE-122)
-                publisher=pinned,
+                publisher=newest,
                 category=entry.category,
                 license=entry.license,
                 description=entry.description,

@@ -213,13 +213,14 @@ def test_core_352_a_release_whose_signature_does_not_verify_is_rejected(tmp_path
     assert [r.version for r in result.index.modules[0].releases] == ["1.0.0"]
 
 
-def test_core_123_older_releases_from_another_workflow_are_not_listed(tmp_path: Path) -> None:
+def test_core_123_older_releases_from_another_workflow_are_listed(tmp_path: Path) -> None:
     source = FakeSource()
     source.release("1.0.0", provenance=_provenance(workflow="old.yml"))
     source.release("1.1.0", provenance=_provenance(workflow="publish.yml"))
     result = _build(source, tmp_path)
-    assert [r.version for r in result.index.modules[0].releases] == ["1.1.0"]
-    assert "publish.yml" in _reasons(result)["1.0.0"]
+    module = result.index.modules[0]
+    assert [r.version for r in module.releases] == ["1.1.0", "1.0.0"]
+    assert module.publisher.workflow == "publish.yml"  # the newest listed release
 
 
 def test_a_wheel_that_differs_from_the_pypi_digest_is_rejected(tmp_path: Path) -> None:
