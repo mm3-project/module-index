@@ -63,7 +63,7 @@ jobs:
           )
           print("index signature verifies for the fixed identity")
           PY
-      - uses: actions/upload-pages-artifact@v3
+      - uses: actions/upload-pages-artifact@v5
         with:
           path: dist
 
